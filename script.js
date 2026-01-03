@@ -1,0 +1,184 @@
+const addTicketButton = document.querySelector(".add-button-container");
+const tickerAdderBlock = document.querySelector(".ticker-adder-block");
+const ticketAdderColorContainer = document.querySelector(
+  ".ticket-adde-color-container"
+);
+const ticketAdderTextArea = document.querySelector(".ticket-adder-text");
+const taskAdderColors = document.querySelectorAll(".ticket-adde-color");
+const tickerContainerBox = document.querySelector(".ticket-container");
+const deleteButton = document.querySelector(".delete-button-container");
+const deleteIcon = document.getElementById("deleteIcon");
+const colorFilterContainer = document.querySelector(".nav-color-container");
+const showAllButton = document.querySelector(".show-all-button-container");
+
+let currentTaskAdderSelectedColor = "red";
+
+let taskArray = []; // to store the task
+
+let isDelete = false;
+
+let colorArray = ["red", "blue", "green", "black"];
+
+let lockButtonSvg = `<svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 24 24" width="24" height="24"  fill="#ffffff" >  <path    d="M19 10H20C20.5523 10 21 10.4477 21 11V21C21 21.5523 20.5523 22 20 22H4C3.44772 22 3 21.5523 3 21V11C3 10.4477 3.44772 10 4 10H5V9C5 5.13401 8.13401 2 12 2C15.866 2 19 5.13401 19 9V10ZM17 10V9C17 6.23858 14.7614 4 12 4C9.23858 4 7 6.23858 7 9V10H17ZM11 14V18H13V14H11Z"  ></path> </svg>`;
+
+let unlockButtonSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"  fill="#ffffff" ><path d="M7 10H20C20.5523 10 21 10.4477 21 11V21C21 21.5523 20.5523 22 20 22H4C3.44772 22 3 21.5523 3 21V11C3 10.4477 3.44772 10 4 10H5V9C5 5.13401 8.13401 2 12 2C14.7405 2 17.1131 3.5748 18.2624 5.86882L16.4731 6.76344C15.6522 5.12486 13.9575 4 12 4C9.23858 4 7 6.23858 7 9V10ZM5 12V20H19V12H5ZM10 15H14V17H10V15Z"></path></svg>`;
+
+showAllButton.addEventListener("click", function () {
+  createTickets(taskArray);
+});
+
+colorFilterContainer.addEventListener("click", function (event) {
+  let targetContainer = event.target;
+  let targetColor = targetContainer.classList[1];
+  const colorIndex = colorArray.indexOf(targetColor);
+
+  if (colorIndex == -1) return;
+
+  let filteredTicket = [];
+
+  for (let i = 0; i < taskArray.length; i++) {
+    if (taskArray[i].color === targetColor) {
+      filteredTicket.push(taskArray[i]);
+    }
+  }
+  createTickets(filteredTicket);
+});
+
+function toggleTickerAdder() {
+  tickerAdderBlock.classList.toggle("hide");
+}
+
+addTicketButton.addEventListener("click", toggleTickerAdder);
+
+ticketAdderColorContainer.addEventListener("click", function (event) {
+  // Selecting the target container
+  const targetContainer = event.target;
+  // from targetContainer getting the color which user has selected
+  currentTaskAdderSelectedColor = targetContainer.classList[1];
+
+  const colorIndex = colorArray.indexOf(currentTaskAdderSelectedColor);
+
+  if (colorIndex == -1) return;
+
+  // removing the border from all the colors
+  for (let i = 0; i < taskAdderColors.length; i++) {
+    let currentContainer = taskAdderColors[i];
+    currentContainer.classList.remove("active-color");
+  }
+  // Adding the border class to target container
+  targetContainer.classList.add("active-color");
+});
+
+ticketAdderTextArea.addEventListener("keydown", function (e) {
+  let keyPressed = e.key;
+  let task = ticketAdderTextArea.value.trim();
+
+  if (keyPressed == "Enter" && task.length > 0) {
+    let currentTaskObj = {
+      task: task,
+      color: currentTaskAdderSelectedColor,
+      id: Date.now(),
+    };
+
+    taskArray.push(currentTaskObj);
+    createTickets(taskArray);
+    ticketAdderTextArea.value = "";
+    toggleTickerAdder();
+  }
+});
+
+deleteButton.addEventListener("click", function () {
+  if (isDelete) {
+    // delete is active
+    deleteIcon.setAttribute("fill", "#000000");
+  } else {
+    deleteIcon.setAttribute("fill", "red");
+    // delete is inactive
+  }
+  isDelete = !isDelete;
+});
+
+function createTickets(taskArrayCustom) {
+  tickerContainerBox.innerHTML = "";
+
+  for (let i = 0; i < taskArrayCustom.length; i++) {
+    let taskObj = taskArrayCustom[i];
+
+    let currentId = taskObj.id;
+
+    let ticketDiv = document.createElement("div");
+    ticketDiv.classList.add("ticket-block");
+
+    ticketDiv.innerHTML = `<div class="ticket-color ${taskObj.color}"></div>
+    <div class="ticket-task-area">
+     ${taskObj.task}
+    </div>
+     <div class="ticker-lock-button-container">
+      ${lockButtonSvg}
+      </div>`;
+
+    // delete functionality of ticket
+    ticketDiv.addEventListener("dblclick", function () {
+      if (!isDelete) return;
+
+      let newArray = [];
+
+      for (let i = 0; i < taskArray.length; i++) {
+        if (taskArray[i].id !== currentId) {
+          newArray.push(taskArray[i]);   // ✅ always use master array
+        }
+      }
+
+      taskArray = newArray;
+
+      tickerContainerBox.removeChild(ticketDiv);
+    });
+
+    const colorPanel = ticketDiv.querySelector(".ticket-color");
+    // This function is handling the color change feature in ticket
+    colorPanel.addEventListener("click", function () {
+      let currentColor = taskObj.color;
+      console.log(currentColor);
+      let currentColorIdx = 0;
+      for (let j = 0; j < colorArray.length; j++) {
+        if (currentColor == colorArray[j]) {
+          currentColorIdx = j;
+        }
+      }
+      let nextColorIdx = (currentColorIdx + 1) % colorArray.length;
+      colorPanel.classList.remove(currentColor);
+      taskObj.color = colorArray[nextColorIdx];
+      colorPanel.classList.add(colorArray[nextColorIdx]);
+    });
+    // To edit the task in the ticket
+
+    let lockButton = ticketDiv.querySelector(".ticker-lock-button-container");
+    let ticketTaskArea = ticketDiv.querySelector(".ticket-task-area");
+
+    let lockFlag = false; // the lock is colsed
+
+    lockButton.addEventListener("click", function () {
+      if (lockFlag == false) {
+        lockButton.innerHTML = unlockButtonSvg;
+        ticketTaskArea.setAttribute("contenteditable", "true");
+      } else {
+        lockButton.innerHTML = lockButtonSvg;
+        ticketTaskArea.setAttribute("contenteditable", "false");
+        taskObj.task = ticketTaskArea.innerText;
+      }
+      lockFlag = !lockFlag;
+    });
+
+    tickerContainerBox.appendChild(ticketDiv);
+  }
+}
+
+
+
+const toggle = document.getElementById("theme-toggle");
+
+toggle.addEventListener("click", () => {
+  document.body.classList.toggle("light-theme");
+  toggle.innerText = document.body.classList.contains("light-theme") ? "🌞" : "🌙";
+});
+
