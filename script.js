@@ -3,7 +3,6 @@ const tickerAdderBlock = document.querySelector(".ticker-adder-block");
 const ticketAdderColorContainer = document.querySelector(
   ".ticket-adde-color-container"
 );
-
 const ticketAdderTextArea = document.querySelector(".ticket-adder-text");
 const taskAdderColors = document.querySelectorAll(".ticket-adde-color");
 const tickerContainerBox = document.querySelector(".ticket-container");
